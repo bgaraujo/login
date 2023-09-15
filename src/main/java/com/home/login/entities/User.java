@@ -18,8 +18,12 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+    @Column(nullable=false, unique=true)
     private String username;
+    @Column(nullable=false)
     private String password;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+    private List<Profiles> authorities;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

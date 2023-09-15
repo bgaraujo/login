@@ -1,7 +1,7 @@
 package com.home.login.controller.login;
 
-import com.home.login.dto.login.LoginDTO;
-import com.home.login.dto.login.TokenReturnDTO;
+import com.home.login.dto.token.TokenReturnDTO;
+import com.home.login.dto.user.UserDTO;
 import com.home.login.entities.User;
 import com.home.login.security.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +22,10 @@ public class Login implements LoginEndpoint{
     private TokenService tokenService;
 
     @Override
-    public ResponseEntity<TokenReturnDTO> login(@RequestBody @Validated LoginDTO loginDTO) {
-        var authenticationToken = new UsernamePasswordAuthenticationToken(loginDTO.username(), loginDTO.password());
+    public ResponseEntity<TokenReturnDTO> login(@RequestBody @Validated UserDTO userDTO) {
+        var authenticationToken = new UsernamePasswordAuthenticationToken(userDTO.getUsername(), userDTO.getPassword());
         var authentication =  manager.authenticate(authenticationToken);
-        var tokenJWT = tokenService.createToken((User) authentication.getPrincipal());
-
-        return ResponseEntity.ok(new TokenReturnDTO(tokenJWT));
+        TokenReturnDTO tokenJWT = new TokenReturnDTO(tokenService.createToken((User) authentication.getPrincipal()));
+        return ResponseEntity.ok(new TokenReturnDTO(tokenJWT.getToken()));
     }
 }

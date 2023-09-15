@@ -2,8 +2,10 @@ package com.home.login.controller.user;
 
 import com.home.login.dto.user.UserDTO;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @RequestMapping("user")
 public interface UserEndPoint {
@@ -15,10 +17,8 @@ public interface UserEndPoint {
     public ResponseEntity update(UserDTO userDTO);
 
     @GetMapping
-    @Secured("ROLE_ADMIN")
     public ResponseEntity get();
 
     @GetMapping("/{id}")
-    @Secured("ROLE_USER")
     public ResponseEntity get(Long id);
 }

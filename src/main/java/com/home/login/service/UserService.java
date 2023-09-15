@@ -1,16 +1,19 @@
 package com.home.login.service;
 
 import com.home.login.dto.user.UserDTO;
-import com.home.login.entities.User;
+import com.home.login.dto.user.UserResponseDTO;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import java.util.List;
 
 public interface UserService {
-    User createUser(UserDTO userDTO);
+    UserResponseDTO createUser(UserDTO userDTO);
 
-    List<User> getUsers();
+    List<UserResponseDTO> getUsers();
 
-    User getUserById(Long id);
+    UserResponseDTO getUserById(Long id);
 
-    User getUserByUsername(String username);
+    UserResponseDTO getUserByUsername(String username);
+
+    UsernamePasswordAuthenticationToken getUserAuthenticationToken(String tokenJWT);
 }
