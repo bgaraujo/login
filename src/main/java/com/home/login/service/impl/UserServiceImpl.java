@@ -9,13 +9,10 @@ import com.home.login.repository.user.UserRepository;
 import com.home.login.security.PasswordService;
 import com.home.login.security.TokenService;
 import com.home.login.service.UserService;
-import org.modelmapper.ValidationException;
-import org.modelmapper.internal.bytebuddy.implementation.bytecode.Throw;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
