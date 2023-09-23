@@ -1,48 +1,99 @@
 package com.home.login.security;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTCreationException;
-import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.home.login.entities.User;
+import com.home.login.exception.PublicPrivateKeyErrorException;
+import com.nimbusds.jose.*;
+import com.nimbusds.jose.crypto.RSADecrypter;
+import com.nimbusds.jose.crypto.RSAEncrypter;
+import com.nimbusds.jwt.EncryptedJWT;
+import com.nimbusds.jwt.JWTClaimsSet;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.io.FileReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
+import java.util.Date;
+import java.util.UUID;
 
 @Service
 public class TokenService {
 
-    @Value("${api.security.token.secret}")
+    @Value("${security.token.secret}")
     private String secret;
 
-    public String createToken(User user){
+    @Value("${security.key.public}")
+    private String publicKeyPath;
+
+    @Value("${security.key.private}")
+    private String privateKeyPath;
+
+    public String createToken(UsernamePasswordAuthenticationToken authenticationToken) {
         try {
-            Algorithm algorithm = Algorithm.HMAC256(secret);
-            return JWT.create()
-                    .withIssuer("api_login")
-                    .withSubject(user.getUsername())
-                    .withExpiresAt(expirationDate())
-                    .sign(algorithm);
-        } catch (JWTCreationException exception){
-            throw new RuntimeException("Erro ao gerar token JWT", exception);
+            JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                    .subject("user")
+                    .issuer("login")
+                    .expirationTime(new Date(System.currentTimeMillis() + 3600000))
+                    .claim("authenticationToken", authenticationToken)
+                    .jwtID(UUID.randomUUID().toString())
+                    .build();
+            JWEHeader header = new JWEHeader.Builder(JWEAlgorithm.RSA_OAEP_256, EncryptionMethod.A256GCM)
+                    .contentType("JWT")
+                    .build();
+            EncryptedJWT encryptedJWT = new EncryptedJWT(header, claimsSet);
+            JWEEncrypter encrypter = new RSAEncrypter(readRSAPublicKeyFromPEMFile());
+            encryptedJWT.encrypt(encrypter);
+            return encryptedJWT.serialize();
+        }catch (Exception e){
+            throw new RuntimeException("Erro ao gerar token JWT", e);
         }
     }
 
-    public String getSubject(String tokenJWT){
+    public String getSubject(String tokenJWE){
         try {
-            Algorithm algorithm = Algorithm.HMAC256(secret);
-            return  JWT.require(algorithm)
-                    .withIssuer("api_login")
-                    .build().verify(tokenJWT).getSubject();
-        } catch (JWTVerificationException exception){
+            RSAPrivateKey privateKey = readRSAPrivateKeyFromPEMFile();
+            JWEObject jweObject = JWEObject.parse(tokenJWE);
+            JWEDecrypter decrypter = new RSADecrypter(privateKey);
+            jweObject.decrypt(decrypter);
+            return jweObject.getPayload().toJSONObject().get("authenticationToken").toString();
+        }catch (Exception e){
             throw new RuntimeException("Token JWT expirado ou invalido");
         }
     }
 
-    private Instant expirationDate() {
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+    private RSAPublicKey readRSAPublicKeyFromPEMFile(){
+        try {
+            String pemContent = new String(Files.readAllBytes(Paths.get(publicKeyPath)));
+            pemContent = pemContent.replace("-----BEGIN PUBLIC KEY-----", "")
+                    .replace("-----END PUBLIC KEY-----", "")
+                    .replaceAll("\\s", "");
+            X509EncodedKeySpec spec = new X509EncodedKeySpec(Base64.getDecoder().decode(pemContent));
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            return (RSAPublicKey) kf.generatePublic(spec);
+        }catch (Exception e){
+            throw new PublicPrivateKeyErrorException();
+        }
+    }
+
+    private RSAPrivateKey readRSAPrivateKeyFromPEMFile() throws Exception {
+        try{
+            PEMParser pemParser = new PEMParser(new FileReader(privateKeyPath));
+            PEMKeyPair pemKeyPair = (PEMKeyPair) pemParser.readObject();
+            KeyPair keyPair = new JcaPEMKeyConverter().getKeyPair(pemKeyPair);
+            return (RSAPrivateKey) keyPair.getPrivate();
+        } catch (Exception e){
+            throw new PublicPrivateKeyErrorException();
+        }
     }
 }

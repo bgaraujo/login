@@ -1,9 +1,11 @@
 package com.home.login.service.impl;
 
-import com.home.login.configuration.ModelMapper;
+import com.home.login.configuration.ModelMapperConfig;
 import com.home.login.dto.user.UserDTO;
 import com.home.login.dto.user.UserResponseDTO;
+import com.home.login.entities.Profiles;
 import com.home.login.entities.User;
+import com.home.login.exception.LoginException;
 import com.home.login.exception.UniqueException;
 import com.home.login.repository.user.UserRepository;
 import com.home.login.security.PasswordService;
@@ -22,7 +24,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private ModelMapper modelMapper;
+    private ModelMapperConfig modelMapper;
     @Autowired
     private PasswordService passwordService;
     @Autowired
@@ -54,9 +56,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UsernamePasswordAuthenticationToken getUserAuthenticationToken(String tokenJWT) {
-        var subject = tokenService.getSubject(tokenJWT);
-        User user = userRepository.findByUsername(subject).orElseThrow();
-        return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+    public UsernamePasswordAuthenticationToken getUserAuthenticationToken(UserDTO userDTO) {
+        User user = userRepository.findByUsername(userDTO.getUsername()).orElseThrow();
+        return new UsernamePasswordAuthenticationToken(userDTO.getUsername(), userDTO.getPassword(), user.getAuthorities());
+    }
+
+    @Override
+    public List<Profiles> getAuthoritiesByUsername(String username) {
+        User user = userRepository.findByUsername(username).orElseThrow();
+        return user.getAuthorities();
     }
 }

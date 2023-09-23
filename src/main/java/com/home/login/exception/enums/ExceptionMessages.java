@@ -7,7 +7,10 @@ import lombok.ToString;
 @ToString
 public enum ExceptionMessages{
     USER_NOT_FOUND("Usuario não encontrado"),
-    UNIQUE_FIELD("Usuario ja cadastrado");
+    UNIQUE_FIELD("Usuario ja cadastrado"),
+    PK_KEY_ERROR("Erro ao obter chave publica/privada"),
+    INVALID_USARNAME_OR_PASSWORD("Nome de usuario ou senha invalido"),
+    ;
 
     private String message;
 
