@@ -2,12 +2,8 @@ package com.home.login.entities;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.validation.annotation.Validated;
 
-import java.util.Collection;
 import java.util.List;
 
 
@@ -23,6 +19,13 @@ public class User implements UserDetails {
     private String username;
     @Column(nullable=false)
     private String password;
+    private String name;
+    private String gender;
+    private String email;
+    //Adress -> service address
+    //Contact -> service documents
+    //Documents -> service documents
+
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
     private List<Profiles> authorities;
 

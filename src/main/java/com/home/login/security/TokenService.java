@@ -30,9 +30,6 @@ import java.util.UUID;
 @Service
 public class TokenService {
 
-    @Value("${security.token.secret}")
-    private String secret;
-
     @Value("${security.key.public}")
     private String publicKeyPath;
 

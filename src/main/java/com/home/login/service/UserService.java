@@ -1,9 +1,8 @@
 package com.home.login.service;
 
-import com.home.login.dto.user.UserDTO;
-import com.home.login.dto.user.UserResponseDTO;
+import com.home.dtos.user.UserDTO;
+import com.home.dtos.user.UserResponseDTO;
 import com.home.login.entities.Profiles;
-import com.home.login.entities.User;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import java.util.List;
