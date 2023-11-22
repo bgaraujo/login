@@ -22,10 +22,12 @@ public class User implements UserDetails {
     private String name;
     private String gender;
     private String email;
-    //Adress -> service address
-    //Contact -> service documents
-    //Documents -> service documents
-
+    @OneToMany
+    private List<Document> documents;
+    @OneToMany
+    private List<Address> addresses;
+    @OneToMany
+    private List<Phone> phones;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
     private List<Profiles> authorities;
 
