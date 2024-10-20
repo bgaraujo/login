@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: login
+  datasource:
+    url: jdbc:mysql://localhost:3307/users
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      table_prefix: user_
+      ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+security:
+    key:
+      public: ${PUBLIC_KEY}
+      private: ${PRIVATE_KEY}
