@@ -7,6 +7,7 @@ import com.nimbusds.jose.crypto.RSADecrypter;
 import com.nimbusds.jose.crypto.RSAEncrypter;
 import com.nimbusds.jwt.EncryptedJWT;
 import com.nimbusds.jwt.JWTClaimsSet;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
@@ -20,11 +21,13 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyFactory;
 import java.security.KeyPair;
+import java.security.PrivateKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -86,9 +89,12 @@ public class TokenService {
     private RSAPrivateKey readRSAPrivateKeyFromPEMFile() throws Exception {
         try{
             PEMParser pemParser = new PEMParser(new FileReader(privateKeyPath));
-            PEMKeyPair pemKeyPair = (PEMKeyPair) pemParser.readObject();
-            KeyPair keyPair = new JcaPEMKeyConverter().getKeyPair(pemKeyPair);
-            return (RSAPrivateKey) keyPair.getPrivate();
+            Object object = pemParser.readObject();
+
+            return (RSAPrivateKey) new JcaPEMKeyConverter().getPrivateKey((PrivateKeyInfo) object);
+
+            //KeyPair keyPair = new JcaPEMKeyConverter().getKeyPair(pemKeyPair);
+            //return (RSAPrivateKey) keyPair.getPrivate();
         } catch (Exception e){
             throw new PublicPrivateKeyErrorException();
         }

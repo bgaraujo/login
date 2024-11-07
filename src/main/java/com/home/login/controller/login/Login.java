@@ -29,6 +29,7 @@ public class Login implements LoginEndpoint{
         UsernamePasswordAuthenticationToken authenticationToken = userService.getUserAuthenticationToken(userDTO);
         manager.authenticate(authenticationToken);
         TokenReturnDTO tokenJWT = new TokenReturnDTO(tokenService.createToken(authenticationToken));
+
         return ResponseEntity.ok(new TokenReturnDTO(tokenJWT.getToken()));
     }
 }

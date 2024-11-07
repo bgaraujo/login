@@ -1,6 +1,7 @@
 package com.home.login.controller.user;
 
 import com.home.dtos.user.UserDTO;
+import com.home.dtos.user.UserResponseDTO;
 import com.home.login.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,7 @@ public class UserController implements UserEndPoint{
     }
 
     @Override
-    public ResponseEntity get(@PathVariable Long id) {
+    public ResponseEntity<UserResponseDTO> get(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 }

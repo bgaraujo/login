@@ -2,21 +2,19 @@ package com.home.login.service.impl;
 
 import com.home.dtos.user.UserDTO;
 import com.home.dtos.user.UserResponseDTO;
-import com.home.login.configuration.ModelMapperConfig;
 import com.home.login.entities.Profiles;
 import com.home.login.entities.User;
-import com.home.login.exception.LoginException;
 import com.home.login.exception.UniqueException;
 import com.home.login.repository.user.UserRepository;
 import com.home.login.security.PasswordService;
 import com.home.login.security.TokenService;
 import com.home.login.service.UserService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -24,7 +22,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private ModelMapperConfig modelMapper;
+    private ModelMapper modelMapper;
     @Autowired
     private PasswordService passwordService;
     @Autowired
@@ -35,24 +33,25 @@ public class UserServiceImpl implements UserService {
         if(userRepository.findByUsername(userDTO.getUsername()).isPresent()){
             throw new UniqueException();
         }
-        User user = modelMapper.getMapper().map(userDTO, User.class);
+        User user = modelMapper.map(userDTO, User.class);
         user.setPassword(passwordService.encryptPassword(userDTO.getPassword()));
-        return modelMapper.getMapper().map(userRepository.save(user), UserResponseDTO.class);
+        return modelMapper.map(userRepository.save(user), UserResponseDTO.class);
     }
 
     @Override
     public List<UserResponseDTO> getUsers() {
-        return userRepository.findAll().stream().map(user -> modelMapper.getMapper().map(user,UserResponseDTO.class)).collect(Collectors.toList());
+        return userRepository.findAll().stream().map(user -> modelMapper.map(user,UserResponseDTO.class)).toList();
     }
 
     @Override
     public UserResponseDTO getUserById(Long id) {
-        return modelMapper.getMapper().map(userRepository.getReferenceById(id), UserResponseDTO.class);
+        User user = userRepository.findById(id).orElseThrow();
+        return modelMapper.map(user, UserResponseDTO.class);
     }
 
     @Override
     public UserResponseDTO getUserByUsername(String username) {
-        return modelMapper.getMapper().map(userRepository.findByUsername(username), UserResponseDTO.class);
+        return modelMapper.map(userRepository.findByUsername(username), UserResponseDTO.class);
     }
 
     @Override
