@@ -74,14 +74,11 @@ public class UserService {
     }
 
     private String getToken(User user){
-        //var scopes = user.getRoles().stream().map(Role::getName).collect(Collectors.joining(" "));
-
         var claims = JwtClaimsSet.builder()
                 .issuer("security_model")
                 .subject(user.getId().toString())
-                .subject(user.getTownHousesId().toString())
                 .expiresAt(Instant.now().plusSeconds(expiresAt))
-                //.claim("scopes", scopes)
+                .claim("townHousesId", user.getTownHousesId().toString())
                 .issuedAt(Instant.now()).build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
