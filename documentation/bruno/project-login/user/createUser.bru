@@ -1,0 +1,47 @@
+meta {
+  name: createUser
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/user
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "baraujo.dev@gmail.com",
+    "password": "admin",
+    "fullName": "Bruno Gomes",
+    "townHousesId": 1,
+    "phones": [
+      "11959594444",
+      "1145454545"
+    ],
+    "address": [
+      {
+        "name":"Apartamento",
+        "postalCode":"13219071",
+        "street":"rua angelo corradini",
+        "number":"1",
+        "state":"SP",
+        "city":"Jundiaí",
+        "complement":"ap 10"
+      }
+    ],
+    "residentialUnit":"1-125",
+    "documents":[
+      {
+        "documentType":"CPF",
+        "number":"796.491.710-29"
+      }
+    ],
+    "roles": [
+      {
+        "name": "resident"
+      }
+    ]
+  }
+}

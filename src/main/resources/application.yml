@@ -7,14 +7,22 @@ spring:
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
+    show-sql: true
     hibernate:
-      table_prefix: user_
       ddl-auto: create
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
 
 security:
-    key:
-      public: ${PUBLIC_KEY}
-      private: ${PRIVATE_KEY}
+  expires-at: 3600
+  key:
+    public: ${PUBLIC_KEY}
+    private: ${PRIVATE_KEY}
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.web.filter: DEBUG
+    org.springframework.security.authentication: DEBUG
+

@@ -1,52 +1,61 @@
 package com.home.login.entities;
 
-import jakarta.persistence.*;
+import com.home.dtos.login.LoginRequest;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.Data;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 
-@Table(name = "users")
-@Entity
 @Data
-public class User implements UserDetails {
+@Entity
+@Table(name = "tb_users")
+public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    @Column(nullable=false, unique=true)
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "user_id")
+    private UUID id;
+    @Column(unique=true)
     private String username;
-    @Column(nullable=false)
     private String password;
-    private String name;
-    private String gender;
-    @OneToMany
+    private String fullName;
+    private Long townHousesId;
+    private List<String> phones;
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<Address> address;
+    private String residentialUnit;
+    private Boolean active;
+    private LocalDateTime creationDate;
+    private LocalDateTime lastLogin;
+    private String observations;
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Document> documents;
-    @OneToMany
-    private List<Address> addresses;
-    @OneToMany
-    private List<Phone> phones;
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
-    private List<Profiles> authorities;
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "tb_users_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles;
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
 
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
+    public boolean isLoginCorrect(LoginRequest loginRequest, PasswordEncoder passwordEncoder) {
+        return passwordEncoder.matches(loginRequest.password(),this.password);
     }
 }
