@@ -2,21 +2,18 @@ package com.home.login.service;
 
 import com.home.dtos.login.LoginRequest;
 import com.home.dtos.login.LoginResponse;
+import com.home.dtos.login.ServiceDTO;
 import com.home.dtos.user.RoleDTO;
 import com.home.dtos.user.UserRequestDTO;
 import com.home.dtos.user.UserResponseDTO;
-import com.home.login.entities.Address;
-import com.home.login.entities.Document;
-import com.home.login.entities.Role;
-import com.home.login.entities.User;
+import com.home.login.entities.RoleEntity;
+import com.home.login.entities.UserEntity;
 import com.home.login.exception.UniqueException;
-import com.home.login.repository.AddressRepository;
-import com.home.login.repository.DocumentRepository;
+import com.home.login.exception.UserNotFoundException;
 import com.home.login.repository.RoleRepository;
 import com.home.login.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -27,9 +24,8 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -50,37 +46,55 @@ public class UserService {
 
     @Transactional
     public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
-        if(userRepository.findByUsername(userRequestDTO.getUsername()).isPresent()){
+        if (userRepository.findByUsername(userRequestDTO.getUsername()).isPresent()) {
             throw new UniqueException();
         }
-        User user = modelMapper.map(userRequestDTO, User.class);
+        UserEntity userEntity = modelMapper.map(userRequestDTO, UserEntity.class);
 
-        Set<Role> basicRoles =
+        Set<RoleEntity> basicRoleEntities =
                 roleRepository.findAllByNameIn(userRequestDTO.getRoles().stream().map(RoleDTO::getName).toList()).orElse(null);
 
-        user.setRoles(basicRoles);
-        user.setPassword(bCryptPasswordEncoder.encode(userRequestDTO.getPassword()));
-        return modelMapper.map(userRepository.save(user), UserResponseDTO.class);
+        userEntity.setRoleEntities(basicRoleEntities);
+        userEntity.setPassword(bCryptPasswordEncoder.encode(userRequestDTO.getPassword()));
+        return modelMapper.map(userRepository.save(userEntity), UserResponseDTO.class);
     }
 
     public LoginResponse login(LoginRequest loginRequest) {
         var user = userRepository.findByUsername(loginRequest.username());
 
-        if(user.isEmpty() || !user.get().isLoginCorrect(loginRequest, bCryptPasswordEncoder)){
+        if (user.isEmpty() || !user.get().isLoginCorrect(loginRequest, bCryptPasswordEncoder)) {
             throw new BadCredentialsException("Login or password is invalid!");
         }
 
-        return new LoginResponse(getToken(user.get()), 36000L);
+        var userRoles = user.get().getRoleEntities();
+
+        var services = userRoles.stream()
+                .flatMap(roleEntity -> roleEntity.getServices().stream())
+                .distinct()
+                .map(serviceEntity -> new ServiceDTO(
+                        serviceEntity.getId(),
+                        serviceEntity.getName(),
+                        serviceEntity.getDescription(),
+                        serviceEntity.getIcon()))
+                .toList();
+
+        return new LoginResponse(getToken(user.get()), 36000L, services);
     }
 
-    private String getToken(User user){
+    private String getToken(UserEntity userEntity) {
         var claims = JwtClaimsSet.builder()
                 .issuer("security_model")
-                .subject(user.getId().toString())
+                .subject(userEntity.getId().toString())
                 .expiresAt(Instant.now().plusSeconds(expiresAt))
-                .claim("townHousesId", user.getTownHousesId().toString())
+                .claim("townHousesId", userEntity.getTownHousesId().toString())
                 .issuedAt(Instant.now()).build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+    }
+
+    public UserResponseDTO getUserById(String id) {
+        var userEntity = userRepository.findById(UUID.fromString(id))
+                .orElseThrow(UserNotFoundException::new);
+        return modelMapper.map(userEntity, UserResponseDTO.class);
     }
 }

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
-public class CustomException {
+public class ExceptionIntercept {
 
         @ExceptionHandler(EntityNotFoundException.class)
         public ResponseEntity entityNotFoundException() {
@@ -46,10 +46,10 @@ public class CustomException {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Acesso negado");
         }
 
-        @ExceptionHandler(Exception.class)
-        public ResponseEntity exception(Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro: " +e.getMessage());
-        }
+    @ExceptionHandler(DefaultException.class)
+    public ResponseEntity<String> handleDefaultException(DefaultException ex) {
+        return ResponseEntity.status(ex.getHttpStatus()).body(ex.getMessage());
+    }
 
         private record DataValidationError(String field, String value) {
             public DataValidationError(FieldError error) {

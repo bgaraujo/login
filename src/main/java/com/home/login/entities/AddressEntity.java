@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @Data
 @Entity
 @Table(name = "address")
-public class Address {
+public class AddressEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;

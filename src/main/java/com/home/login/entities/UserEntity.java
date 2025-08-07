@@ -25,7 +25,7 @@ import java.util.UUID;
 @Data
 @Entity
 @Table(name = "tb_users")
-public class User {
+public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -38,21 +38,21 @@ public class User {
     private Long townHousesId;
     private List<String> phones;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<Address> address;
+    private List<AddressEntity> address;
     private String residentialUnit;
     private Boolean active;
     private LocalDateTime creationDate;
     private LocalDateTime lastLogin;
     private String observations;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<Document> documents;
+    private List<DocumentEntity> document;
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "tb_users_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
-    private Set<Role> roles;
+    private Set<RoleEntity> roleEntities;
 
 
     public boolean isLoginCorrect(LoginRequest loginRequest, PasswordEncoder passwordEncoder) {
